@@ -19,44 +19,45 @@
             <div class="left-panel">
                 <div class="foodie-pass-preview" onclick="openPass()">
                     <div class="pass-tag">FOODIE PASS</div>
-                    <div class="pass-prog">Level 1/10</div>
+                    <div class="pass-prog">Level <span id="pass-lvl-text">1</span></div>
+                    <div class="pass-bar-bg"><div id="pass-bar-fill"></div></div>
                 </div>
-                <div class="fooders-list" id="fooders-list">
-                    </div>
+                <div class="fooders-list" id="fooders-list"></div>
             </div>
 
             <div class="center-panel">
                 <div id="hero-preview" class="floating">🍔</div>
                 <h2 id="hero-name">SIR BURGER</h2>
-                <button id="upgrade-btn" class="btn-upgrade">LEVELIT UP! (0 🪙)</button>
+                <button id="upgrade-btn" onclick="upgradeHero()" class="btn-upgrade">LEVELIT UP!</button>
             </div>
 
             <div class="right-panel">
                 <div class="mode-selector">
-                    <div class="mode-info">
-                        <strong>POTLUCK PARTY</strong>
-                        <span>3v3 • 30 Kills</span>
-                    </div>
+                    <strong>POTLUCK PARTY</strong><br>
+                    <span>3v3 • 30 Kills</span>
                 </div>
-                <button id="play-btn" class="btn-play">HRAJ</button>
+                <button id="play-btn" onclick="startGame()" class="btn-play">HRAJ</button>
             </div>
         </div>
     </div>
 
     <div id="pass-screen" class="screen hidden">
-        <div class="pass-header">
-            <h1>FOODIE PASS - SEASON 1</h1>
-            <button onclick="closePass()" class="btn-close">X</button>
-        </div>
-        <div class="pass-rewards" id="pass-rewards">
+        <div class="pass-modal">
+            <div class="pass-header">
+                <h2>POTRAVINOVÝ PASS</h2>
+                <button onclick="closePass()" class="btn-close">X</button>
             </div>
+            <div class="pass-content">
+                <div class="reward-item claimable"><span>Lvl 1</span> 🪙 100 <button disabled>ZÍSKÁNO</button></div>
+                <div class="reward-item"><span>Lvl 2</span> 💎 10 <button class="btn-claim">ZÍSKAT</button></div>
+                <div class="reward-item locked"><span>Lvl 3</span> 🍔 SKIN <button disabled>ZAMČENO</button></div>
+            </div>
+        </div>
     </div>
 
     <canvas id="gameCanvas" class="hidden"></canvas>
     <div id="game-ui" class="hidden">
-        <div class="score-board">
-            <span class="t-blue" id="s-blue">0</span> : <span class="t-red" id="s-red">0</span>
-        </div>
+        <div class="score-board"><span class="t-blue" id="s-blue">0</span> : <span class="t-red" id="s-red">0</span></div>
         <div id="joy-move" class="joy-container"><div class="joy-base"><div id="stick-move" class="stick"></div></div></div>
         <div id="joy-shoot" class="joy-container"><div class="joy-base red-joy"><div id="stick-shoot" class="stick"></div></div></div>
     </div>
@@ -64,8 +65,8 @@
     <div id="result-screen" class="screen hidden">
         <h1 id="res-title">VÍTĚZSTVÍ!</h1>
         <div class="res-stats">
-            <p>🪙 +<span id="res-coins">0</span></p>
-            <p>🏆 +<span id="res-trophies">0</span></p>
+            <div class="stat-row">🪙 +<span id="res-coins">0</span></div>
+            <div class="stat-row">🏆 +<span id="res-trophies">0</span></div>
         </div>
         <button onclick="backToMenu()" class="btn-play">POKRAČOVAT</button>
     </div>
