@@ -2,230 +2,59 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
     <title>Food Fight: Kitchen Chaos</title>
-    <style>
-        :root {
-            --yellow: #ffce00; --blue: #0072ff; --red: #ff4b2b; --green: #4cd137;
-        }
-        body, html { margin: 0; padding: 0; overflow: hidden; font-family: 'Arial Black', sans-serif; background: #222; color: white; }
-        
-        /* UI VRSTVY */
-        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
-        .hidden { display: none !important; }
-
-        /* MENU OBRAZOVKA */
-        #menu-screen { background: linear-gradient(135deg, #1e90ff, #ff4b2b); }
-        .brawler-select { display: flex; gap: 20px; margin: 20px; }
-        .card { 
-            background: rgba(0,0,0,0.6); border: 4px solid white; border-radius: 15px; padding: 20px; 
-            cursor: pointer; transition: 0.2s; text-align: center; width: 120px;
-        }
-        .card:hover { transform: scale(1.1); border-color: var(--yellow); }
-        .card.selected { border-color: var(--yellow); background: rgba(255, 206, 0, 0.3); }
-        .card img { font-size: 50px; display: block; margin-bottom: 10px; }
-
-        .btn { 
-            background: var(--green); border: 4px solid white; border-radius: 15px; padding: 15px 50px; 
-            font-size: 2rem; color: white; cursor: pointer; box-shadow: 0 6px 0 #2bad1a;
-        }
-        .btn:active { transform: translateY(4px); box-shadow: none; }
-
-        /* HERNÍ ROZHRANÍ */
-        #game-ui { position: absolute; top: 0; width: 100%; padding: 20px; pointer-events: none; z-index: 5; display: flex; justify-content: space-between; box-sizing: border-box; }
-        .score-box { background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 10px; font-size: 1.5rem; }
-
-        canvas { background: #555; display: block; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="rotate-device">Prosím, otočte telefon na šířku 🔄</div>
 
     <div id="menu-screen" class="screen">
-        <h1>FOOD FIGHT: KITCHEN CHAOS</h1>
-        <p>Vyber si svého Foodieho:</p>
-        <div class="brawler-select">
-            <div class="card selected" onclick="selectBrawler('burger', this)">
-                <span>🍔</span><br>Sir Burger<br><small>Vysoké HP</small>
-            </div>
-            <div class="card" onclick="selectBrawler('taco', this)">
-                <span>🌮</span><br>Spicy Taco<br><small>Rychlost</small>
-            </div>
-            <div class="card" onclick="selectBrawler('sushi', this)">
-                <span>🍣</span><br>Sushi Roll<br><small>Dosah</small>
+        <div class="top-bar">
+            <div class="currency">🪙 1200</div>
+            <div class="currency">🧪 150</div>
+        </div>
+        
+        <div class="title-area">
+            <h1>FOOD FIGHT</h1>
+            <p>KITCHEN CHAOS</p>
+        </div>
+
+        <div class="character-display">
+            <div id="main-character-preview">🍔</div>
+            <div class="character-stats">
+                <h2 id="selected-name">SIR BURGER</h2>
+                <div class="hp-bar-ui">HP: <span id="stat-hp">150</span></div>
             </div>
         </div>
-        <button class="btn" onclick="startGame()">HRAJ (3v3)</button>
+
+        <div class="side-buttons">
+            <button class="btn-side">OBCHOD</button>
+            <button class="btn-side" style="background: #ffce00; color: black;">BATTLE PASS</button>
+        </div>
+
+        <div class="play-zone">
+            <div class="mode-select">
+                <span class="mode-icon">🔥</span>
+                <div class="mode-text">
+                    <strong>THE FLOOR IS LAVA</strong>
+                    <small>Přežij v oleji!</small>
+                </div>
+            </div>
+            <button id="play-button" class="btn-main">HRAJ</button>
+        </div>
     </div>
+
+    <canvas id="gameCanvas" class="hidden"></canvas>
 
     <div id="game-ui" class="hidden">
-        <div class="score-box">Můj tým: <span id="team-score">0</span></div>
-        <div class="score-box">Čas: <span id="timer">150</span>s</div>
-        <div class="score-box">Nepřátelé: <span id="enemy-score">0</span></div>
+        <div class="score-container">
+            <div class="score-team blue">3</div>
+            <div class="timer">2:30</div>
+            <div class="score-team red">1</div>
+        </div>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
-
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const menuScreen = document.getElementById('menu-screen');
-const gameUI = document.getElementById('game-ui');
-
-let gameRunning = false;
-let selectedType = 'burger';
-let players = [];
-let bullets = [];
-let ingredients = [];
-
-const CONFIG = {
-    burger: { emoji: '🍔', hp: 150, speed: 3, color: '#ffce00' },
-    taco: { emoji: '🌮', hp: 80, speed: 5, color: '#ff4b2b' },
-    sushi: { emoji: '🍣', hp: 100, speed: 4, color: '#0072ff' }
-};
-
-function selectBrawler(type, el) {
-    selectedType = type;
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-}
-
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resize);
-resize();
-
-class Entity {
-    constructor(x, y, type, team) {
-        this.x = x; this.y = y;
-        this.type = type;
-        this.team = team;
-        this.hp = CONFIG[type].hp;
-        this.maxHp = CONFIG[type].hp;
-        this.speed = CONFIG[type].speed;
-        this.radius = 25;
-        this.lastShot = 0;
-    }
-
-    draw() {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        // Stín
-        ctx.fillStyle = 'rgba(0,0,0,0.2)';
-        ctx.beginPath(); ctx.arc(0, 15, 20, 0, Math.PI*2); ctx.fill();
-        // Emoji (Postava)
-        ctx.font = '40px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(CONFIG[this.type].emoji, 0, 10);
-        // HP Bar
-        ctx.fillStyle = 'red';
-        ctx.fillRect(-20, -35, 40, 5);
-        ctx.fillStyle = this.team === 'player' ? '#4cd137' : '#ff4b2b';
-        ctx.fillRect(-20, -35, (this.hp / this.maxHp) * 40, 5);
-        ctx.restore();
-    }
-}
-
-// Inicializace hry
-function startGame() {
-    menuScreen.classList.add('hidden');
-    gameUI.classList.remove('hidden');
-    gameRunning = true;
-    
-    // Vytvoření hráčova týmu
-    players.push(new Entity(100, canvas.height/2, selectedType, 'player'));
-    players.push(new Entity(100, canvas.height/2 - 100, 'taco', 'player'));
-    players.push(new Entity(100, canvas.height/2 + 100, 'sushi', 'player'));
-
-    // Vytvoření botů
-    players.push(new Entity(canvas.width - 100, canvas.height/2, 'burger', 'enemy'));
-    players.push(new Entity(canvas.width - 100, canvas.height/2 - 100, 'taco', 'enemy'));
-    players.push(new Entity(canvas.width - 100, canvas.height/2 + 100, 'sushi', 'enemy'));
-
-    gameLoop();
-}
-
-// Ovládání
-const keys = {};
-window.onkeydown = (e) => keys[e.key] = true;
-window.onkeyup = (e) => keys[e.key] = false;
-
-window.onmousedown = (e) => {
-    if(!gameRunning) return;
-    shoot(players[0], e.clientX, e.clientY);
-}
-
-function shoot(who, targetX, targetY) {
-    const now = Date.now();
-    if(now - who.lastShot < 500) return;
-    
-    const angle = Math.atan2(targetY - who.y, targetX - who.x);
-    bullets.push({
-        x: who.x, y: who.y,
-        vx: Math.cos(angle) * 8,
-        vy: Math.sin(angle) * 8,
-        team: who.team
-    });
-    who.lastShot = now;
-}
-
-function gameLoop() {
-    if(!gameRunning) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Pohyb hráče
-    const p = players[0];
-    if(keys['w'] || keys['ArrowUp']) p.y -= p.speed;
-    if(keys['s'] || keys['ArrowDown']) p.y += p.speed;
-    if(keys['a'] || keys['ArrowLeft']) p.x -= p.speed;
-    if(keys['d'] || keys['ArrowRight']) p.x += p.speed;
-
-    // Logika Botů a hráčů
-    players.forEach((unit, index) => {
-        if(unit.team === 'enemy') {
-            // Jednoduchá AI: Jdi k hráči a střílej
-            const target = players[0];
-            if(unit.x > target.x + 200) unit.x -= unit.speed * 0.5;
-            if(unit.y < target.y) unit.y += unit.speed * 0.5;
-            if(unit.y > target.y) unit.y -= unit.speed * 0.5;
-            
-            if(Math.random() < 0.02) shoot(unit, target.x, target.y);
-        }
-        unit.draw();
-    });
-
-    // Střely
-    bullets.forEach((b, bIdx) => {
-        b.x += b.vx; b.y += b.vy;
-        ctx.fillStyle = b.team === 'player' ? 'yellow' : 'red';
-        ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill();
-
-        // Kolize střel s hráči
-        players.forEach(u => {
-            if(b.team !== u.team) {
-                const dist = Math.hypot(b.x - u.x, b.y - u.y);
-                if(dist < u.radius) {
-                    u.hp -= 10;
-                    bullets.splice(bIdx, 1);
-                    if(u.hp <= 0) {
-                        u.x = u.team === 'player' ? 50 : canvas.width - 50;
-                        u.hp = u.maxHp;
-                        // Přidání bodů (zjednodušeno)
-                        const scoreId = u.team === 'player' ? 'enemy-score' : 'team-score';
-                        document.getElementById(scoreId).innerText = parseInt(document.getElementById(scoreId).innerText) + 1;
-                    }
-                }
-            }
-        });
-
-        // Odstranění střel mimo obrazovku
-        if(b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) bullets.splice(bIdx, 1);
-    });
-
-    requestAnimationFrame(gameLoop);
-}
-</script>
+    <script src="game.js"></script>
 </body>
 </html>
-
