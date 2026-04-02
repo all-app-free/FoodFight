@@ -3,81 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Food Fight: Trophy Road</title>
+    <title>Food Fight Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="rotate-device">🔄 Otoč telefon na šířku</div>
+    <div id="rotate-overlay">
+        <div class="rotate-content">
+            <div class="phone-icon">📱</div>
+            <p>PROSÍM, OTOČTE ZAŘÍZENÍ NA ŠÍŘKU</p>
+        </div>
+    </div>
 
     <div id="menu-screen" class="screen">
         <div class="top-bar">
-            <div class="trophy-road-preview" onclick="openTrophyRoad()">
-                <div class="road-bar"><div id="road-progress"></div></div>
-                <span>🏆 <span id="p-trophies">0</span></span>
+            <div class="trophy-road-card" onclick="openRoad()">
+                <div class="road-progress-bg"><div id="road-fill"></div></div>
+                <span class="val">🏆 <span id="p-trophies">0</span></span>
             </div>
-            <div class="currency coins">🪙 <span id="p-coins">0</span></div>
-        </div>
-
-        <div class="main-content">
-            <div class="left-panel">
-                <div class="foodie-pass-preview" onclick="openPass()">
-                    <div class="pass-tag">FOODIE PASS</div>
-                    <div class="pass-bar-bg"><div id="pass-bar-fill"></div></div>
-                </div>
-                <div class="fooders-list" id="fooders-list"></div>
-            </div>
-
-            <div class="center-panel">
-                <div id="hero-preview" class="floating">🍔</div>
-                <h2 id="hero-name">SIR BURGER</h2>
-                <button id="upgrade-btn" onclick="upgradeHero()" class="btn-upgrade">VYLEPŠIT</button>
-            </div>
-
-            <div class="right-panel">
-                <button onclick="startGame()" class="btn-play">HRAJ</button>
+            <div class="currency-box">
+                <span class="val">🪙 <span id="p-coins">0</span></span>
             </div>
         </div>
-    </div>
 
-    <div id="road-screen" class="screen hidden">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>CESTA ZA SLÁVOU 🏆</h2>
-                <button onclick="closeRoad()" class="btn-close">X</button>
-            </div>
-            <div class="road-content" id="road-items">
+        <div class="main-layout">
+            <div class="left-side">
+                <div class="foodie-pass-card" onclick="openPass()">
+                    <div class="pass-title">FOODIE PASS</div>
+                    <div class="pass-bar"><div id="pass-fill"></div></div>
                 </div>
+                <div id="fooders-list" class="fooders-list"></div>
+            </div>
+
+            <div class="center-stage">
+                <div id="hero-display" class="floating-hero">🍔</div>
+                <h1 id="hero-name">SIR BURGER</h1>
+                <button class="btn-upgrade" onclick="upgradeHero()">VYLEPŠIT</button>
+            </div>
+
+            <div class="right-side">
+                <div class="mode-card">
+                    <div class="mode-tag">NOVÝ EVENT</div>
+                    <div class="mode-name">POTLUCK PARTY</div>
+                </div>
+                <button class="btn-play" onclick="startGame()">HRAJ</button>
+            </div>
         </div>
     </div>
 
-    <div id="pass-screen" class="screen hidden">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>FOODIE PASS 🍔</h2>
-                <button onclick="closePass()" class="btn-close">X</button>
-            </div>
-            <div class="pass-items" id="pass-items">
-                </div>
+    <div id="pass-screen" class="modal-overlay hidden">
+        <div class="modal-window">
+            <div class="modal-header"><h2>FOODIE PASS - ODMĚNY</h2><button onclick="closeModals()">X</button></div>
+            <div id="pass-items" class="modal-content"></div>
+        </div>
+    </div>
+
+    <div id="road-screen" class="modal-overlay hidden">
+        <div class="modal-window">
+            <div class="modal-header"><h2>TROPHY ROAD</h2><button onclick="closeModals()">X</button></div>
+            <div id="road-items" class="modal-content"></div>
         </div>
     </div>
 
     <canvas id="gameCanvas" class="hidden"></canvas>
     <div id="game-ui" class="hidden">
-        <div class="score-board"><span id="s-blue">0</span> : <span id="s-red">0</span></div>
+        <div class="ingame-score"><span id="s-blue">0</span> : <span id="s-red">0</span></div>
         <div id="joy-move" class="joy-zone"><div class="joy-base"><div id="stick-move" class="stick"></div></div></div>
         <div id="joy-shoot" class="joy-zone"><div class="joy-base red-joy"><div id="stick-shoot" class="stick"></div></div></div>
     </div>
 
-    <div id="result-screen" class="screen hidden">
-        <h1 id="res-title">VÍTĚZSTVÍ!</h1>
-        <div class="res-stats">
-            <p>🪙 +<span id="res-coins">0</span></p>
-            <p>🏆 +<span id="res-trophies">0</span></p>
+    <div id="result-screen" class="modal-overlay hidden">
+        <div class="result-box">
+            <h1 id="res-title">VÍTĚZSTVÍ</h1>
+            <div class="res-row">🏆 +<span id="res-trophies">0</span></div>
+            <div class="res-row">🪙 +<span id="res-coins">0</span></div>
+            <button class="btn-play" onclick="location.reload()">POKRAČOVAT</button>
         </div>
-        <button onclick="backToMenu()" class="btn-play">POKRAČOVAT</button>
     </div>
 
     <script src="game.js"></script>
 </body>
-                                                      </html>
-    
+</html>
