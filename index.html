@@ -10,7 +10,7 @@
     <div id="rotate-overlay">
         <div class="rotate-content">
             <div class="phone-icon">📱</div>
-            <p>PROSÍM, OTOČTE ZAŘÍZENÍ NA ŠÍŘKU</p>
+            <p>OTOČTE TELEFON NA ŠÍŘKU</p>
         </div>
     </div>
 
@@ -31,7 +31,8 @@
                     <div class="pass-title">FOODIE PASS</div>
                     <div class="pass-bar"><div id="pass-fill"></div></div>
                 </div>
-                <div id="fooders-list" class="fooders-list"></div>
+                <div id="fooders-list" class="fooders-list">
+                    </div>
             </div>
 
             <div class="center-stage">
@@ -42,7 +43,7 @@
 
             <div class="right-side">
                 <div class="mode-card">
-                    <div class="mode-tag">NOVÝ EVENT</div>
+                    <div class="mode-tag">EVENT</div>
                     <div class="mode-name">POTLUCK PARTY</div>
                 </div>
                 <button class="btn-play" onclick="startGame()">HRAJ</button>
@@ -52,14 +53,20 @@
 
     <div id="pass-screen" class="modal-overlay hidden">
         <div class="modal-window">
-            <div class="modal-header"><h2>FOODIE PASS - ODMĚNY</h2><button onclick="closeModals()">X</button></div>
+            <div class="modal-header">
+                <h2>FOODIE PASS</h2>
+                <button class="btn-close" onclick="closeModals()">X</button>
+            </div>
             <div id="pass-items" class="modal-content"></div>
         </div>
     </div>
 
     <div id="road-screen" class="modal-overlay hidden">
         <div class="modal-window">
-            <div class="modal-header"><h2>TROPHY ROAD</h2><button onclick="closeModals()">X</button></div>
+            <div class="modal-header">
+                <h2>TROPHY ROAD</h2>
+                <button class="btn-close" onclick="closeModals()">X</button>
+            </div>
             <div id="road-items" class="modal-content"></div>
         </div>
     </div>
@@ -76,7 +83,7 @@
             <h1 id="res-title">VÍTĚZSTVÍ</h1>
             <div class="res-row">🏆 +<span id="res-trophies">0</span></div>
             <div class="res-row">🪙 +<span id="res-coins">0</span></div>
-            <button class="btn-play" onclick="location.reload()">POKRAČOVAT</button>
+            <button class="btn-play" onclick="location.reload()">MENU</button>
         </div>
     </div>
 
