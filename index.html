@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Food Fight: Kitchen Chaos</title>
+    <title>Food Fight: Trophy Road</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,7 +11,10 @@
 
     <div id="menu-screen" class="screen">
         <div class="top-bar">
-            <div class="currency trophies">🏆 <span id="p-trophies">0</span></div>
+            <div class="trophy-road-preview" onclick="openTrophyRoad()">
+                <div class="road-bar"><div id="road-progress"></div></div>
+                <span>🏆 <span id="p-trophies">0</span></span>
+            </div>
             <div class="currency coins">🪙 <span id="p-coins">0</span></div>
         </div>
 
@@ -19,7 +22,6 @@
             <div class="left-panel">
                 <div class="foodie-pass-preview" onclick="openPass()">
                     <div class="pass-tag">FOODIE PASS</div>
-                    <div class="pass-prog">Level <span id="pass-lvl-text">1</span></div>
                     <div class="pass-bar-bg"><div id="pass-bar-fill"></div></div>
                 </div>
                 <div class="fooders-list" id="fooders-list"></div>
@@ -28,49 +30,54 @@
             <div class="center-panel">
                 <div id="hero-preview" class="floating">🍔</div>
                 <h2 id="hero-name">SIR BURGER</h2>
-                <button id="upgrade-btn" onclick="upgradeHero()" class="btn-upgrade">LEVELIT UP!</button>
+                <button id="upgrade-btn" onclick="upgradeHero()" class="btn-upgrade">VYLEPŠIT</button>
             </div>
 
             <div class="right-panel">
-                <div class="mode-selector">
-                    <strong>POTLUCK PARTY</strong><br>
-                    <span>3v3 • 30 Kills</span>
-                </div>
-                <button id="play-btn" onclick="startGame()" class="btn-play">HRAJ</button>
+                <button onclick="startGame()" class="btn-play">HRAJ</button>
             </div>
         </div>
     </div>
 
+    <div id="road-screen" class="screen hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>CESTA ZA SLÁVOU 🏆</h2>
+                <button onclick="closeRoad()" class="btn-close">X</button>
+            </div>
+            <div class="road-content" id="road-items">
+                </div>
+        </div>
+    </div>
+
     <div id="pass-screen" class="screen hidden">
-        <div class="pass-modal">
-            <div class="pass-header">
-                <h2>FOODIE PASS</h2>
+        <div class="modal">
+            <div class="modal-header">
+                <h2>FOODIE PASS 🍔</h2>
                 <button onclick="closePass()" class="btn-close">X</button>
             </div>
-            <div class="pass-content">
-                <div class="reward-item claimable"><span>Lvl 1</span> 🪙 100 <button disabled>ZÍSKÁNO</button></div>
-                <div class="reward-item"><span>Lvl 2</span> 💎 10 <button class="btn-claim">ZÍSKAT</button></div>
-                <div class="reward-item locked"><span>Lvl 3</span> 🍔 SKIN <button disabled>ZAMČENO</button></div>
-            </div>
+            <div class="pass-items" id="pass-items">
+                </div>
         </div>
     </div>
 
     <canvas id="gameCanvas" class="hidden"></canvas>
     <div id="game-ui" class="hidden">
-        <div class="score-board"><span class="t-blue" id="s-blue">0</span> : <span class="t-red" id="s-red">0</span></div>
-        <div id="joy-move" class="joy-container"><div class="joy-base"><div id="stick-move" class="stick"></div></div></div>
-        <div id="joy-shoot" class="joy-container"><div class="joy-base red-joy"><div id="stick-shoot" class="stick"></div></div></div>
+        <div class="score-board"><span id="s-blue">0</span> : <span id="s-red">0</span></div>
+        <div id="joy-move" class="joy-zone"><div class="joy-base"><div id="stick-move" class="stick"></div></div></div>
+        <div id="joy-shoot" class="joy-zone"><div class="joy-base red-joy"><div id="stick-shoot" class="stick"></div></div></div>
     </div>
 
     <div id="result-screen" class="screen hidden">
         <h1 id="res-title">VÍTĚZSTVÍ!</h1>
         <div class="res-stats">
-            <div class="stat-row">🪙 +<span id="res-coins">0</span></div>
-            <div class="stat-row">🏆 +<span id="res-trophies">0</span></div>
+            <p>🪙 +<span id="res-coins">0</span></p>
+            <p>🏆 +<span id="res-trophies">0</span></p>
         </div>
         <button onclick="backToMenu()" class="btn-play">POKRAČOVAT</button>
     </div>
 
     <script src="game.js"></script>
 </body>
-</html>
+                                                      </html>
+    
