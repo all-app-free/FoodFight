@@ -1,6 +1,6 @@
-// --- DATA & SETUP ---
-let state = JSON.parse(localStorage.getItem('FoodFightSaveV3')) || {
-    coins: 200, trophies: 0, selected: 'burger', claimed: [],
+// --- STATE MANAGEMENT ---
+let state = JSON.parse(localStorage.getItem('FoodFight_Pro_Save')) || {
+    coins: 250, trophies: 0, selected: 'burger', claimed: [],
     fooders: {
         burger: { emoji: '🍔', name: 'SIR BURGER', hp: 1000, level: 1, unlocked: true },
         taco: { emoji: '🌮', name: 'SPICY TACO', hp: 800, level: 1, unlocked: false },
@@ -8,41 +8,44 @@ let state = JSON.parse(localStorage.getItem('FoodFightSaveV3')) || {
     }
 };
 
-const PASS_REWARDS = Array.from({length: 20}, (_, i) => ({
-    id: `p${i}`, req: i * 25, val: (i+1)*50, type: i % 5 === 0 && i !== 0 ? 'hero' : 'coins',
-    target: i % 5 === 0 && i !== 0 ? 'taco' : 'coins'
+// --- DATA GENERATION (MASSIVE TRACKS) ---
+const PASS_REWARDS = Array.from({length: 40}, (_, i) => ({
+    id: `p${i}`, req: i * 20, val: (i + 1) * 75, 
+    type: i % 10 === 0 && i !== 0 ? 'hero' : 'coins',
+    target: i % 10 === 0 && i !== 0 ? 'taco' : 'coins'
 }));
 
-const ROAD_REWARDS = Array.from({length: 30}, (_, i) => ({
-    id: `r${i}`, req: i * 40, val: (i+1)*100, type: i === 6 ? 'hero' : 'coins',
-    target: i === 6 ? 'sushi' : 'coins'
+const ROAD_REWARDS = Array.from({length: 50}, (_, i) => ({
+    id: `r${i}`, req: i * 50, val: (i + 1) * 150, 
+    type: i === 5 ? 'hero' : 'coins',
+    target: i === 5 ? 'sushi' : 'coins'
 }));
 
 function save() {
-    localStorage.setItem('FoodFightSaveV3', JSON.stringify(state));
+    localStorage.setItem('FoodFight_Pro_Save', JSON.stringify(state));
     updateUI();
 }
 
-// --- UI UPDATES ---
+// --- UI REFRESH ---
 function updateUI() {
     document.getElementById('p-trophies').innerText = state.trophies;
     document.getElementById('p-coins').innerText = state.coins;
     
     const hero = state.fooders[state.selected];
-    document.getElementById('hero-render').innerText = hero.emoji;
+    document.getElementById('hero-model').innerText = hero.emoji;
     document.getElementById('hero-name').innerText = `${hero.name} LV.${hero.level}`;
     document.getElementById('stat-hp').innerText = `❤️ ${hero.hp}`;
     
-    const upCost = hero.level * 150;
+    const upCost = hero.level * 200;
     document.getElementById('u-price').innerText = upCost;
-    document.getElementById('btn-upgrade').style.opacity = state.coins >= upCost ? "1" : "0.5";
+    document.getElementById('btn-upgrade').style.filter = state.coins >= upCost ? "none" : "grayscale(1)";
 
-    document.getElementById('road-fill').style.width = Math.min(100, state.trophies/10) + "%";
-    document.getElementById('pass-fill').style.width = Math.min(100, state.trophies/5) + "%";
+    document.getElementById('road-fill').style.width = Math.min(100, (state.trophies/10)) + "%";
+    document.getElementById('pass-fill').style.width = Math.min(100, (state.trophies/5)) + "%";
 
-    const tray = document.getElementById('hero-list');
+    const tray = document.getElementById('hero-tray');
     tray.innerHTML = Object.keys(state.fooders).filter(k => state.fooders[k].unlocked).map(k => `
-        <div class="reward-pole ${state.selected === k ? 'claimed' : ''}" style="width:70px; cursor:pointer" onclick="selectHero('${k}')">
+        <div class="reward-node ${state.selected === k ? 'unlocked' : ''}" style="width:70px; margin-bottom:10px; cursor:pointer" onclick="selectHero('${k}')">
             ${state.fooders[k].emoji}
         </div>
     `).join('');
@@ -52,24 +55,24 @@ function selectHero(id) { state.selected = id; save(); }
 
 function upgradeHero() {
     const hero = state.fooders[state.selected];
-    const cost = hero.level * 150;
+    const cost = hero.level * 200;
     if (state.coins >= cost) {
         state.coins -= cost;
         hero.level++;
-        hero.hp += 200;
+        hero.hp += 250;
         save();
     }
 }
 
-// --- MODALS ---
+// --- SWIPEABLE MODALS ---
 function openPass() {
     document.getElementById('pass-modal').classList.remove('hidden');
-    renderTrack('pass-items', PASS_REWARDS, 'pass');
+    renderTrack('pass-track', PASS_REWARDS, 'pass');
 }
 
 function openRoad() {
     document.getElementById('road-modal').classList.remove('hidden');
-    renderTrack('road-items', ROAD_REWARDS, 'road');
+    renderTrack('road-track', ROAD_REWARDS, 'road');
 }
 
 function renderTrack(elId, data, type) {
@@ -78,12 +81,12 @@ function renderTrack(elId, data, type) {
         const claimed = state.claimed.includes(item.id);
         const locked = state.trophies < item.req;
         return `
-            <div class="reward-pole ${locked?'locked':''} ${claimed?'claimed':''}">
-                <div style="font-size:0.7rem">${item.req}🏆</div>
-                <span class="icon">${item.type === 'coins' ? '🪙' : '🎁'}</span>
+            <div class="reward-node ${locked?'':'unlocked'} ${claimed?'claimed':''}">
+                <div style="font-size:0.8rem; color:var(--gold)">${item.req}🏆</div>
+                <div style="font-size:2.5rem; margin:10px 0">${item.type === 'coins' ? '🪙' : '🎁'}</div>
                 <button onclick="claimReward('${item.id}','${type}')" 
-                    class="btn-fancy ${locked?'':'green'}" style="font-size:0.6rem; padding:4px" ${locked||claimed?'disabled':''}>
-                    ${claimed?'CLAIMED':(locked?'LOCKED':'CLAIM')}
+                    class="upgrade-button" style="min-width:80px; font-size:0.7rem; padding:5px" ${locked||claimed?'disabled':''}>
+                    ${claimed?'OK':(locked?'LOCK':'CLAIM')}
                 </button>
             </div>
         `;
@@ -100,17 +103,17 @@ function claimReward(id, type) {
     type === 'pass' ? openPass() : openRoad();
 }
 
-function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.classList.add('hidden')); }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')); }
 
-// --- GAME LOGIC (JOYSTICKS & ENGINE) ---
+// --- GAME CORE (JOYSTICKS & ENGINE) ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-let gameActive = false, entities = [], projectiles = [];
+let gameActive = false, entities = [];
 
 const joyL = { id: null, x: 0, y: 0, active: false };
 const joyR = { id: null, x: 0, y: 0, active: false, lastS: 0 };
 
-function initGameInput() {
+function initInput() {
     const handle = (e) => {
         for (let t of e.changedTouches) {
             const isL = t.clientX < window.innerWidth / 2;
@@ -131,68 +134,36 @@ function initGameInput() {
 
 function moveJoy(t, id, data) {
     const r = document.getElementById(id).getBoundingClientRect();
-    const dx = t.clientX - (r.left + 50), dy = t.clientY - (r.top + 50);
+    const dx = t.clientX - (r.left + r.width/2), dy = t.clientY - (r.top + r.height/2);
     const d = Math.min(Math.hypot(dx, dy), 40);
     const a = Math.atan2(dy, dx);
     data.active = d > 5; data.x = Math.cos(a) * (d / 40); data.y = Math.sin(a) * (d / 40);
-    document.querySelector(`#${id} .thumb`).style.transform = `translate(${data.x*30}px, ${data.y*30}px)`;
+    document.querySelector(`#${id} .handle`).style.transform = `translate(${data.x*30}px, ${data.y*30}px)`;
 }
-function resetJoy(id) { document.querySelector(`#${id} .thumb`).style.transform = `translate(0,0)`; }
+function resetJoy(id) { document.querySelector(`#${id} .handle`).style.transform = `translate(0,0)`; }
 
 function startGame() {
     document.getElementById('menu-screen').classList.add('hidden');
     canvas.classList.remove('hidden'); document.getElementById('game-ui').classList.remove('hidden');
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    entities = [new Fighter(100, canvas.height/2, 'blue', state.selected, true)];
-    // Add bots
-    for(let i=0; i<2; i++) entities.push(new Fighter(100, 50+i*300, 'blue', 'burger'));
-    for(let i=0; i<3; i++) entities.push(new Fighter(canvas.width-100, 100+i*200, 'red', 'taco'));
-    gameActive = true; initGameInput(); loop();
-}
-
-class Fighter {
-    constructor(x, y, team, id, isP = false) {
-        this.x = x; this.y = y; this.team = team; this.isP = isP;
-        this.hp = state.fooders[id].hp; this.max = this.hp; this.emoji = state.fooders[id].emoji;
-    }
-    update() {
-        if (this.isP) {
-            if (joyL.active) { this.x += joyL.x * 6; this.y += joyL.y * 6; }
-            if (joyR.active && Date.now() - joyR.lastS > 400) { 
-                projectiles.push({x:this.x, y:this.y, vx:joyR.x*12, vy:joyR.y*12, team:this.team});
-                joyR.lastS = Date.now();
-            }
-        } else {
-            this.x += (this.team === 'blue' ? 1 : -1) * 2;
-            if (Math.random() < 0.01) projectiles.push({x:this.x, y:this.y, vx:(this.team==='blue'?1:-1)*10, vy:0, team:this.team});
-        }
-    }
-    draw() {
-        ctx.font = '30px Arial'; ctx.fillText(this.emoji, this.x-15, this.y+10);
-        ctx.fillStyle = 'red'; ctx.fillRect(this.x-20, this.y-30, 40, 4);
-        ctx.fillStyle = 'green'; ctx.fillRect(this.x-20, this.y-30, (this.hp/this.max)*40, 4);
-    }
+    gameActive = true; initInput(); 
+    // Quick Demo Battle
+    entities = [
+        {x: 100, y: canvas.height/2, team:'blue', hp:1000, max:1000, emoji:state.fooders[state.selected].emoji},
+        {x: canvas.width-100, y: canvas.height/2, team:'red', hp:1000, max:1000, emoji:'🍣'}
+    ];
+    loop();
 }
 
 function loop() {
     if (!gameActive) return;
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    entities.forEach(e => { e.update(); e.draw(); });
-    projectiles.forEach((p, i) => {
-        p.x += p.vx; p.y += p.vy;
-        ctx.fillStyle = 'yellow'; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 7); ctx.fill();
-        entities.forEach(e => {
-            if (e.team !== p.team && Math.hypot(p.x-e.x, p.y-e.y) < 30) {
-                e.hp -= 200; projectiles.splice(i,1);
-                if (e.hp <= 0) {
-                    state.trophies += 5; state.coins += 10; save();
-                    location.reload(); // Quick reset for demo
-                }
-            }
-        });
+    ctx.fillStyle = '#10ac84'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    entities.forEach(e => {
+        if(e.team === 'blue' && joyL.active){ e.x += joyL.x*5; e.y += joyL.y*5; }
+        ctx.font = '40px Arial'; ctx.fillText(e.emoji, e.x-20, e.y+15);
     });
     requestAnimationFrame(loop);
 }
 
 updateUI();
-
+        
