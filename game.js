@@ -1,109 +1,209 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const menu = document.getElementById('menu-screen');
-const playBtn = document.getElementById('play-button');
-
-let gameActive = false;
-let players = [];
-
-// Nastavení postav
-const FOODIES = {
-    burger: { emoji: '🍔', hp: 150, speed: 4 },
-    taco: { emoji: '🌮', hp: 80, speed: 6 },
-    sushi: { emoji: '🍣', hp: 100, speed: 5 }
+// DATA HRY
+const gameState = {
+    coins: 500,
+    selectedId: 'burger',
+    fooders: {
+        burger: { name: 'SIR BURGER', emoji: '🍔', lvl: 1, hp: 100, speed: 4, unlocked: true },
+        taco: { name: 'SPICY TACO', emoji: '🌮', lvl: 1, hp: 80, speed: 6, unlocked: false, cost: 200 },
+        sushi: { name: 'SUSHI ROLL', emoji: '🍣', lvl: 1, hp: 90, speed: 5, unlocked: false, cost: 500 }
+    }
 };
 
-class Player {
-    constructor(x, y, type, team, isBot) {
-        this.x = x; this.y = y;
-        this.type = type;
-        this.team = team;
-        this.isBot = isBot;
-        this.hp = FOODIES[type].hp;
-        this.maxHp = FOODIES[type].hp;
-        this.speed = FOODIES[type].speed;
-        this.angle = 0;
+// INITIALIZACE MENU
+function renderMenu() {
+    document.getElementById('player-coins').innerText = gameState.coins;
+    const list = document.getElementById('fooder-list');
+    list.innerHTML = '';
+
+    Object.keys(gameState.fooders).forEach(id => {
+        const f = gameState.fooders[id];
+        const div = document.createElement('div');
+        div.className = `fooder-item ${!f.unlocked ? 'locked' : ''} ${gameState.selectedId === id ? 'selected' : ''}`;
+        div.innerHTML = `<span>${f.emoji}</span> ${f.name} ${!f.unlocked ? '<span class="lock-icon">🔒</span>' : ''}`;
+        div.onclick = () => selectFooder(id);
+        list.appendChild(div);
+    });
+
+    const curr = gameState.fooders[gameState.selectedId];
+    document.getElementById('hero-preview').innerText = curr.emoji;
+    document.getElementById('hero-name').innerText = curr.name;
+    document.getElementById('hero-lvl').innerText = curr.lvl;
+    
+    const upBtn = document.getElementById('upgrade-btn');
+    if (!curr.unlocked) {
+        upBtn.innerText = `ODEMKNOUT (${curr.cost} 🪙)`;
+    } else {
+        upBtn.innerText = `LEVELIT UP! (${curr.lvl * 150} 🪙)`;
+    }
+}
+
+function selectFooder(id) {
+    gameState.selectedId = id;
+    renderMenu();
+}
+
+document.getElementById('upgrade-btn').onclick = () => {
+    const f = gameState.fooders[gameState.selectedId];
+    if (!f.unlocked) {
+        if (gameState.coins >= f.cost) {
+            gameState.coins -= f.cost;
+            f.unlocked = true;
+        }
+    } else {
+        let cost = f.lvl * 150;
+        if (gameState.coins >= cost) {
+            gameState.coins -= cost;
+            f.lvl++;
+        }
+    }
+    renderMenu();
+};
+
+// HERNÍ ENGINE
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let entities = [];
+let projectiles = [];
+let gameRunning = false;
+let scores = { blue: 0, red: 0 };
+
+const joyL = { x: 0, y: 0, active: false };
+const joyR = { x: 0, y: 0, active: false, lastS: 0 };
+
+class Foodie {
+    constructor(x, y, id, team, isPlayer = false) {
+        const conf = gameState.fooders[id];
+        this.x = x; this.y = y; this.team = team;
+        this.emoji = conf.emoji;
+        this.hp = conf.hp + (conf.lvl * 10);
+        this.maxHp = this.hp;
+        this.speed = conf.speed;
+        this.isPlayer = isPlayer;
+        this.radius = 25;
     }
 
     draw() {
         ctx.save();
         ctx.translate(this.x, this.y);
-        
-        // HP Bar
-        ctx.fillStyle = '#000';
-        ctx.fillRect(-30, -50, 60, 8);
-        ctx.fillStyle = this.team === 'blue' ? '#00f' : '#f00';
-        ctx.fillRect(-30, -50, (this.hp / this.maxHp) * 60, 8);
-
-        // Postava
-        ctx.font = '50px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(FOODIES[this.type].emoji, 0, 15);
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.arc(0, 15, 20, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'black'; ctx.fillRect(-25, -40, 50, 6);
+        ctx.fillStyle = this.team === 'blue' ? '#0072ff' : '#ff3e3e';
+        ctx.fillRect(-25, -40, (this.hp/this.maxHp)*50, 6);
+        ctx.font = '40px Arial'; ctx.textAlign = 'center';
+        ctx.fillText(this.emoji, 0, 15);
         ctx.restore();
     }
 
-    update(targetX, targetY) {
-        if (!this.isBot) {
-            // Hráč následuje dotyk/myš
-            let dx = targetX - this.x;
-            let dy = targetY - this.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist > 5) {
-                this.x += (dx/dist) * this.speed;
-                this.y += (dy/dist) * this.speed;
+    update() {
+        if (this.isPlayer) {
+            if (joyL.active) {
+                this.x += joyL.x * this.speed;
+                this.y += joyL.y * this.speed;
             }
         } else {
-            // Jednoduchá AI botů
-            this.x += (Math.random() - 0.5) * this.speed;
-            this.y += (Math.random() - 0.5) * this.speed;
+            // AI Boti - jdou k nejbližšímu nepříteli
+            let target = entities.find(e => e.team !== this.team);
+            if (target) {
+                let dx = target.x - this.x;
+                let dy = target.y - this.y;
+                let dist = Math.hypot(dx, dy);
+                if (dist > 150) {
+                    this.x += (dx/dist) * (this.speed * 0.6);
+                    this.y += (dy/dist) * (this.speed * 0.6);
+                } else if (Math.random() < 0.02) {
+                    shoot(this, dx/dist, dy/dist);
+                }
+            }
         }
+        this.x = Math.max(25, Math.min(canvas.width-25, this.x));
+        this.y = Math.max(25, Math.min(canvas.height-25, this.y));
     }
+}
+
+function shoot(owner, vx, vy) {
+    projectiles.push({ x: owner.x, y: owner.y, vx: vx*10, vy: vy*10, team: owner.team });
 }
 
 function initGame() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    entities = [];
+    // 3v3
+    entities.push(new Foodie(100, canvas.height/2, gameState.selectedId, 'blue', true));
+    entities.push(new Foodie(100, 100, 'taco', 'blue'));
+    entities.push(new Foodie(100, canvas.height-100, 'burger', 'blue'));
     
-    // Vytvoření týmu (Hráč + 2 boti vs 3 boti)
-    players.push(new Player(100, canvas.height/2, 'burger', 'blue', false));
-    players.push(new Player(100, 100, 'taco', 'blue', true));
-    players.push(new Player(100, canvas.height-100, 'sushi', 'blue', true));
+    entities.push(new Foodie(canvas.width-100, canvas.height/2, 'burger', 'red'));
+    entities.push(new Foodie(canvas.width-100, 100, 'sushi', 'red'));
+    entities.push(new Foodie(canvas.width-100, canvas.height-100, 'taco', 'red'));
 
-    players.push(new Player(canvas.width-100, canvas.height/2, 'burger', 'red', true));
-    players.push(new Player(canvas.width-100, 100, 'taco', 'red', true));
-    players.push(new Player(canvas.width-100, canvas.height-100, 'sushi', 'red', true));
+    gameRunning = true;
+    requestAnimationFrame(loop);
 }
 
-let touchX = 0, touchY = 0;
-canvas.addEventListener('mousemove', e => { touchX = e.clientX; touchY = e.clientY; });
-canvas.addEventListener('touchstart', e => { 
-    touchX = e.touches[0].clientX; 
-    touchY = e.touches[0].clientY; 
-});
+function loop() {
+    if (!gameRunning) return;
+    ctx.fillStyle = '#2d5a27'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    entities.forEach(e => { e.update(); e.draw(); });
 
-function gameLoop() {
-    if (!gameActive) return;
-    ctx.fillStyle = '#2d5a27'; // Zelená podlaha kuchyně
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (joyR.active && Date.now() - joyR.lastS > 400) {
+        shoot(entities[0], joyR.x, joyR.y);
+        joyR.lastS = Date.now();
+    }
 
-    // Kreslení dlaždic (stůl)
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    for(let i=0; i<canvas.width; i+=50) ctx.strokeRect(i, 0, 50, canvas.height);
+    projectiles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        ctx.fillStyle = p.team === 'blue' ? 'yellow' : 'red';
+        ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill();
 
-    players.forEach(p => {
-        p.update(touchX, touchY);
-        p.draw();
+        entities.forEach(e => {
+            if (e.team !== p.team && Math.hypot(p.x-e.x, p.y-e.y) < 25) {
+                e.hp -= 25; projectiles.splice(i, 1);
+                if (e.hp <= 0) {
+                    e.hp = e.maxHp; e.x = e.team === 'blue' ? 100 : canvas.width-100;
+                    scores[p.team]++;
+                    document.getElementById('s-blue').innerText = scores.blue;
+                    document.getElementById('s-red').innerText = scores.red;
+                }
+            }
+        });
     });
 
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(loop);
 }
 
-playBtn.addEventListener('click', () => {
-    menu.classList.add('hidden');
+// OVLÁDÁNÍ JOYSTICKŮ
+function setupJoysticks() {
+    const handle = (e, stickId, state) => {
+        const t = e.touches[0];
+        const b = document.getElementById(stickId).parentElement.getBoundingClientRect();
+        const dx = t.clientX - (b.left + b.width/2);
+        const dy = t.clientY - (b.top + b.height/2);
+        const dist = Math.min(Math.hypot(dx, dy), 40);
+        const angle = Math.atan2(dy, dx);
+        state.x = Math.cos(angle) * (dist/40);
+        state.y = Math.sin(angle) * (dist/40);
+        state.active = dist > 5;
+        document.getElementById(stickId).style.transform = `translate(${state.x*35}px, ${state.y*35}px)`;
+    };
+
+    document.getElementById('joy-move-cont').ontouchstart = (e) => handle(e, 'stick-move', joyL);
+    document.getElementById('joy-move-cont').ontouchmove = (e) => handle(e, 'stick-move', joyL);
+    document.getElementById('joy-move-cont').ontouchend = () => { joyL.active = false; document.getElementById('stick-move').style.transform = 'translate(0,0)'; };
+
+    document.getElementById('joy-shoot-cont').ontouchstart = (e) => handle(e, 'stick-shoot', joyR);
+    document.getElementById('joy-shoot-cont').ontouchmove = (e) => handle(e, 'stick-shoot', joyR);
+    document.getElementById('joy-shoot-cont').ontouchend = () => { joyR.active = false; document.getElementById('stick-shoot').style.transform = 'translate(0,0)'; };
+}
+
+document.getElementById('play-btn').onclick = () => {
+    document.getElementById('menu-screen').classList.add('hidden');
     canvas.classList.remove('hidden');
     document.getElementById('game-ui').classList.remove('hidden');
-    gameActive = true;
-    initGame();
-    gameLoop();
-});
+    initGame(); setupJoysticks();
+};
 
+renderMenu();
+    
