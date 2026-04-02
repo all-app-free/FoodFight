@@ -7,50 +7,69 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="rotate-device">🔄 Otoč telefon na šířku</div>
+    <div id="rotate-device">🔄 Otoč prosím telefon na šířku</div>
 
     <div id="menu-screen" class="screen">
         <div class="top-bar">
-            <div class="currency xp">⭐ <span id="player-xp">0</span></div>
-            <div class="currency coins">🪙 <span id="player-coins">500</span></div>
+            <div class="currency trophies">🏆 <span id="p-trophies">0</span></div>
+            <div class="currency coins">🪙 <span id="p-coins">0</span></div>
         </div>
 
         <div class="main-layout">
-            <div class="fooders-list" id="fooder-list">
-                </div>
-
-            <div class="hero-center">
-                <div id="hero-preview" class="floating">🍔</div>
-                <div class="hero-info">
-                    <h2 id="hero-name">SIR BURGER</h2>
-                    <p>Level: <span id="hero-lvl">1</span></p>
-                </div>
-                <button id="upgrade-btn" class="btn-upgrade">LEVELIT UP! (100 🪙)</button>
+            <div class="side-menu">
+                <button onclick="showScreen('shop-screen')" class="btn-side">OBCHOD</button>
+                <button class="btn-side locked">BATTLE PASS</button>
             </div>
 
-            <div class="mode-selection">
-                <div class="mode-card active" data-mode="potluck">
-                    <span>🥊</span>
-                    <p>Potluck Party</p>
-                </div>
-                <div class="mode-card locked" data-mode="lava">
-                    <span>🔥</span>
-                    <p>Oil is Lava</p>
+            <div class="hero-display">
+                <div id="h-preview" class="floating">🍔</div>
+                <h2 id="h-name">SIR BURGER</h2>
+                <button id="up-btn" class="btn-upgrade">LEVELIT UP!</button>
+            </div>
+
+            <div class="play-zone">
+                <div class="mode-card">
+                    <p>POTLUCK PARTY</p>
+                    <small>Cíl: 30 eliminací</small>
                 </div>
                 <button id="play-btn" class="btn-play">HRAJ</button>
             </div>
         </div>
     </div>
 
+    <div id="shop-screen" class="screen hidden">
+        <h2>KUCHYŇSKÝ OBCHOD</h2>
+        <div class="shop-grid" id="shop-grid"></div>
+        <button onclick="showScreen('menu-screen')" class="btn-back">ZPĚT</button>
+    </div>
+
+    <div id="overview-screen" class="screen hidden">
+        <h1 id="win-status">VÍTĚZSTVÍ!</h1>
+        <div class="match-results">
+            <div class="team-list" id="team-blue-res"></div>
+            <div class="vs-text">VS</div>
+            <div class="team-list" id="team-red-res"></div>
+        </div>
+        <button onclick="showNextResult()" class="btn-play">DALŠÍ</button>
+    </div>
+
+    <div id="rewards-screen" class="screen hidden">
+        <h2>ODMĚNY ZA ZÁPAS</h2>
+        <div class="reward-box">
+            <p>Coins: 🪙 <span id="reward-coins">0</span></p>
+            <p>Trophies: 🏆 <span id="reward-trophies">0</span></p>
+        </div>
+        <button onclick="showScreen('menu-screen')" class="btn-play">DO MENU</button>
+    </div>
+
     <canvas id="gameCanvas" class="hidden"></canvas>
     <div id="game-ui" class="hidden">
-        <div class="ingame-score">
-            <span class="t-blue" id="s-blue">0</span> : <span class="t-red" id="s-red">0</span>
-        </div>
-        <div id="joy-move-cont" class="joy-cont"><div class="joy-base"><div id="stick-move" class="stick"></div></div></div>
-        <div id="joy-shoot-cont" class="joy-cont"><div class="joy-base red-joy"><div id="stick-shoot" class="stick"></div></div></div>
+        <div class="score-bar"><span class="t-blue" id="s-blue">0</span> / 30 — <span class="t-red" id="s-red">0</span> / 30</div>
+        <div id="joy-move" class="joy-zone"><div class="joy-base"><div id="stick-move" class="stick"></div></div></div>
+        <div id="joy-shoot" class="joy-zone"><div class="joy-base red-joy"><div id="stick-shoot" class="stick"></div></div></div>
     </div>
 
     <script src="game.js"></script>
 </body>
-</html>
+            </html>
+            
