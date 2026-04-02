@@ -1,22 +1,24 @@
-// --- GAME DATA ---
+// --- DATA SYSTEM ---
 let state = JSON.parse(localStorage.getItem('foodFightSave')) || {
     coins: 0, trophies: 0, selected: 'burger', claimed: [],
     fooders: {
-        burger: { emoji: '🍔', name: 'SIR BURGER', hp: 1000, speed: 5, unlocked: true },
-        taco: { emoji: '🌮', name: 'SPICY TACO', hp: 800, speed: 7, unlocked: false },
-        sushi: { emoji: '🍣', name: 'SUSHI ROLL', hp: 900, speed: 6, unlocked: false }
+        burger: { emoji: '🍔', name: 'SIR BURGER', hp: 1000, speed: 4.8, unlocked: true },
+        taco: { emoji: '🌮', name: 'SPICY TACO', hp: 800, speed: 6.5, unlocked: false },
+        sushi: { emoji: '🍣', name: 'SUSHI ROLL', hp: 900, speed: 5.8, unlocked: false }
     }
 };
 
 const PASS_DATA = [
-    { id: 'p1', req: 0, reward: 100, type: 'coins', name: 'Starter Coins' },
-    { id: 'p2', req: 30, reward: 'taco', type: 'hero', name: 'Unlock Taco' },
-    { id: 'p3', req: 100, reward: 500, type: 'coins', name: 'Mega Purse' }
+    { id: 'p1', req: 0, reward: 50, type: 'coins', name: 'Welcome Gift' },
+    { id: 'p2', req: 30, reward: 150, type: 'coins', name: 'Pouch of Gold' },
+    { id: 'p3', req: 80, reward: 'taco', type: 'hero', name: 'Unlock Taco' },
+    { id: 'p4', req: 200, reward: 1000, type: 'coins', name: 'King Fortune' }
 ];
 
 const ROAD_DATA = [
-    { id: 'r1', req: 50, reward: 200, type: 'coins', name: 'Road Bonus' },
-    { id: 'r2', req: 150, reward: 'sushi', type: 'hero', name: 'Unlock Sushi' }
+    { id: 'r1', req: 10, reward: 25, type: 'coins', name: 'Road Start' },
+    { id: 'r2', req: 50, reward: 'sushi', type: 'hero', name: 'Sushi Master' },
+    { id: 'r3', req: 150, reward: 500, type: 'coins', name: 'Trophy Hoard' }
 ];
 
 function save() {
@@ -59,7 +61,7 @@ function moveStick(t, cId, sId, st) {
 }
 function resetS(id) { document.getElementById(id).style.transform = 'translate(0,0)'; }
 
-// --- GAME ENGINE ---
+// --- GAME LOGIC ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let entities = [], projectiles = [], walls = [], gameActive = false;
@@ -75,8 +77,9 @@ class Foodie {
         ctx.fillStyle = this.team === 'blue' ? '#0072ff' : '#ff3e3e';
         ctx.beginPath(); ctx.arc(this.x, this.y, 25, 0, Math.PI*2); ctx.fill();
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
-        ctx.font = '25px Arial'; ctx.textAlign = 'center'; ctx.fillText(this.emoji, this.x, this.y+8);
-        ctx.fillStyle = 'black'; ctx.fillRect(this.x-20, this.y-35, 40, 5);
+        ctx.font = '22px Arial'; ctx.textAlign = 'center'; ctx.fillText(this.emoji, this.x, this.y+8);
+        // HP
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(this.x-20, this.y-35, 40, 5);
         ctx.fillStyle = this.team === 'blue' ? '#4cd137' : '#ffce00';
         ctx.fillRect(this.x-20, this.y-35, (this.hp/this.max)*40, 5);
     }
@@ -88,19 +91,34 @@ class Foodie {
             let target = entities.find(e => e.team !== this.team);
             if (target) {
                 let dx = target.x - this.x, dy = target.y - this.y, dist = Math.hypot(dx, dy);
-                if (dist > 150) { this.x += (dx/dist)*2; this.y += (dy/dist)*2; }
+                let vx = (dx/dist)*this.speed*0.6;
+                let vy = (dy/dist)*this.speed*0.6;
+
+                // Improved Bot Avoidance (Sliding along walls)
+                let futureX = this.x + vx;
+                let futureY = this.y + vy;
+                let hitWall = walls.find(w => futureX+20 > w.x && futureX-20 < w.x+w.w && futureY+20 > w.y && futureY-20 < w.y+w.h);
+                
+                if (hitWall) {
+                    // Try moving only X or only Y to "slide"
+                    if (!walls.find(w => futureX+20 > w.x && futureX-20 < w.x+w.w && this.y+20 > w.y && this.y-20 < w.y+w.h)) vy = 0;
+                    else if (!walls.find(w => this.x+20 > w.x && this.x-20 < w.x+w.w && futureY+20 > w.y && futureY-20 < w.y+w.h)) vx = 0;
+                    else { vx = 0; vy = 0; } // Stuck
+                }
+
+                if (dist > 180) { this.x += vx; this.y += vy; }
                 if (Math.random() < 0.02) shoot(this, dx/dist, dy/dist);
             }
         }
         walls.forEach(w => {
-            if (this.x+20 > w.x && this.x-20 < w.x+w.w && this.y+20 > w.y && this.y-20 < w.y+w.h) { this.x=ox; this.y=oy; }
+            if (this.x+22 > w.x && this.x-22 < w.x+w.w && this.y+22 > w.y && this.y-22 < w.y+w.h) { this.x=ox; this.y=oy; }
         });
         this.x = Math.max(25, Math.min(canvas.width-25, this.x));
         this.y = Math.max(25, Math.min(canvas.height-25, this.y));
     }
 }
 
-function shoot(o, vx, vy) { projectiles.push({ x: o.x, y: o.y, vx: vx*10, vy: vy*10, team: o.team }); }
+function shoot(o, vx, vy) { projectiles.push({ x: o.x, y: o.y, vx: vx*12, vy: vy*12, team: o.team }); }
 
 function startGame() {
     document.getElementById('menu-screen').classList.add('hidden');
@@ -108,9 +126,9 @@ function startGame() {
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     score = { b: 0, r: 0 }; projectiles = [];
     walls = [
-        { x: canvas.width*0.2, y: canvas.height*0.2, w: 50, h: canvas.height*0.25 },
-        { x: canvas.width*0.75, y: canvas.height*0.55, w: 50, h: canvas.height*0.25 },
-        { x: canvas.width*0.4, y: canvas.height*0.45, w: canvas.width*0.2, h: 50 }
+        { x: canvas.width*0.2, y: canvas.height*0.2, w: 45, h: canvas.height*0.25 },
+        { x: canvas.width*0.75, y: canvas.height*0.5, w: 45, h: canvas.height*0.25 },
+        { x: canvas.width*0.4, y: canvas.height*0.45, w: canvas.width*0.2, h: 45 }
     ];
     entities = [
         new Foodie(100, canvas.height/2, state.selected, 'blue', true),
@@ -126,11 +144,7 @@ function loop() {
     ctx.fillStyle = '#2d5a27'; ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = '#1a3a15'; walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
 
-    if (joyR.active) {
-        ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.beginPath();
-        ctx.moveTo(entities[0].x, entities[0].y); ctx.lineTo(entities[0].x+joyR.x*200, entities[0].y+joyR.y*200); ctx.stroke();
-        if (Date.now() - joyR.lastS > 400) { shoot(entities[0], joyR.x, joyR.y); joyR.lastS = Date.now(); }
-    }
+    if (joyR.active && Date.now() - joyR.lastS > 400) { shoot(entities[0], joyR.x, joyR.y); joyR.lastS = Date.now(); }
 
     entities.forEach(e => { e.update(); e.draw(); });
     projectiles.forEach((p, i) => {
@@ -156,7 +170,7 @@ function loop() {
 function endMatch(win) {
     gameActive = false;
     document.getElementById('result-screen').classList.remove('hidden');
-    const t = win ? 20 : -5; const c = win ? 50 : 10;
+    const t = win ? 20 : -5; const c = win ? 40 : 10;
     state.trophies = Math.max(0, state.trophies + t); state.coins += c;
     document.getElementById('res-trophies').innerText = (t >= 0 ? "+" : "") + t;
     document.getElementById('res-coins').innerText = "+" + c;
@@ -164,12 +178,12 @@ function endMatch(win) {
     save();
 }
 
-// --- UI FUNCTIONS ---
+// --- UI SYTEM ---
 function updateUI() {
     document.getElementById('p-trophies').innerText = state.trophies;
     document.getElementById('p-coins').innerText = state.coins;
-    document.getElementById('pass-fill').style.width = Math.min(100, state.trophies) + "%";
-    document.getElementById('road-fill').style.width = Math.min(100, state.trophies/2) + "%";
+    document.getElementById('pass-fill').style.width = Math.min(100, (state.trophies/2)) + "%";
+    document.getElementById('road-fill').style.width = Math.min(100, (state.trophies/1.5)) + "%";
     
     const list = document.getElementById('fooders-list'); list.innerHTML = '';
     Object.keys(state.fooders).forEach(key => {
@@ -189,9 +203,13 @@ function openPass() {
     cont.innerHTML = PASS_DATA.map(item => {
         const claimed = state.claimed.includes(item.id);
         const can = state.trophies >= item.req && !claimed;
-        return `<div class="reward-item">
-            <div><strong>${item.name}</strong><br><small>${item.req} 🏆</small></div>
-            <button onclick="claimReward('${item.id}', 'pass')" ${!can?'disabled':''}>${claimed?'CLAIMED':(can?'CLAIM':'LOCKED')}</button>
+        return `<div class="reward-node ${claimed?'claimed':''}">
+            <div style="font-size:0.8rem; color:var(--yellow)">${item.req} 🏆</div>
+            <div style="font-size:2.5rem; margin:10px 0">${item.type==='coins'?'🪙':'🎁'}</div>
+            <div style="font-size:0.7rem; height:25px">${item.name}</div>
+            <button onclick="claim('${item.id}', 'pass')" class="${can?'btn-claim':'btn-locked'}" ${!can?'disabled':''}>
+                ${claimed?'CLAIMED':(can?'CLAIM':'LOCKED')}
+            </button>
         </div>`;
     }).join('');
 }
@@ -202,14 +220,18 @@ function openRoad() {
     cont.innerHTML = ROAD_DATA.map(item => {
         const claimed = state.claimed.includes(item.id);
         const can = state.trophies >= item.req && !claimed;
-        return `<div class="reward-item">
-            <div><strong>${item.name}</strong><br><small>${item.req} 🏆</small></div>
-            <button onclick="claimReward('${item.id}', 'road')" ${!can?'disabled':''}>${claimed?'CLAIMED':(can?'CLAIM':'LOCKED')}</button>
+        return `<div class="reward-node ${claimed?'claimed':''}">
+            <div style="font-size:0.8rem; color:var(--yellow)">${item.req} 🏆</div>
+            <div style="font-size:2.5rem; margin:10px 0">${item.type==='coins'?'🪙':'🎁'}</div>
+            <div style="font-size:0.7rem; height:25px">${item.name}</div>
+            <button onclick="claim('${item.id}', 'road')" class="${can?'btn-claim':'btn-locked'}" ${!can?'disabled':''}>
+                ${claimed?'CLAIMED':(can?'CLAIM':'LOCKED')}
+            </button>
         </div>`;
     }).join('');
 }
 
-function claimReward(id, type) {
+function claim(id, type) {
     const data = type === 'pass' ? PASS_DATA : ROAD_DATA;
     const item = data.find(p => p.id === id);
     if (item.type === 'coins') state.coins += item.reward;
@@ -220,5 +242,6 @@ function claimReward(id, type) {
 
 function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden')); }
 
+initControls();
 updateUI();
         
