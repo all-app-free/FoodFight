@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Food Fight: Kitchen Chaos</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -10,48 +10,30 @@
     <div id="rotate-device">Prosím, otočte telefon na šířku 🔄</div>
 
     <div id="menu-screen" class="screen">
-        <div class="top-bar">
-            <div class="currency">🪙 1200</div>
-            <div class="currency">🧪 150</div>
-        </div>
-        
         <div class="title-area">
             <h1>FOOD FIGHT</h1>
             <p>KITCHEN CHAOS</p>
         </div>
-
-        <div class="character-display">
-            <div id="main-character-preview">🍔</div>
-            <div class="character-stats">
-                <h2 id="selected-name">SIR BURGER</h2>
-                <div class="hp-bar-ui">HP: <span id="stat-hp">150</span></div>
-            </div>
+        <div class="character-preview">
+            <div id="hero-emoji">🍔</div>
+            <h2 id="hero-name">SIR BURGER</h2>
         </div>
-
-        <div class="side-buttons">
-            <button class="btn-side">OBCHOD</button>
-            <button class="btn-side" style="background: #ffce00; color: black;">BATTLE PASS</button>
-        </div>
-
-        <div class="play-zone">
-            <div class="mode-select">
-                <span class="mode-icon">🔥</span>
-                <div class="mode-text">
-                    <strong>THE FLOOR IS LAVA</strong>
-                    <small>Přežij v oleji!</small>
-                </div>
-            </div>
-            <button id="play-button" class="btn-main">HRAJ</button>
-        </div>
+        <button id="play-button" class="btn-main">HRAJ</button>
     </div>
 
     <canvas id="gameCanvas" class="hidden"></canvas>
 
-    <div id="game-ui" class="hidden">
-        <div class="score-container">
-            <div class="score-team blue">3</div>
-            <div class="timer">2:30</div>
-            <div class="score-team red">1</div>
+    <div id="ui-layer" class="hidden">
+        <div class="score-board">
+            <span id="score-blue">0</span> : <span id="score-red">0</span>
+        </div>
+        
+        <div id="joy-left-container" class="joystick-container">
+            <div class="joy-base"><div id="stick-left" class="stick"></div></div>
+        </div>
+
+        <div id="joy-right-container" class="joystick-container">
+            <div class="joy-base red-joy"><div id="stick-right" class="stick"></div></div>
         </div>
     </div>
 
