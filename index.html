@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Food Fight Pro</title>
+    <title>Food Fight 3v3</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="rotate-overlay">
         <div class="rotate-content">
             <div class="phone-icon">📱</div>
-            <p>OTOČTE TELEFON NA ŠÍŘKU</p>
+            <p>PLEASE ROTATE TO LANDSCAPE</p>
         </div>
     </div>
 
@@ -18,11 +18,9 @@
         <div class="top-bar">
             <div class="trophy-road-card" onclick="openRoad()">
                 <div class="road-progress-bg"><div id="road-fill"></div></div>
-                <span class="val">🏆 <span id="p-trophies">0</span></span>
+                <span>🏆 <span id="p-trophies">0</span></span>
             </div>
-            <div class="currency-box">
-                <span class="val">🪙 <span id="p-coins">0</span></span>
-            </div>
+            <div class="currency-box">🪙 <span id="p-coins">0</span></div>
         </div>
 
         <div class="main-layout">
@@ -31,14 +29,13 @@
                     <div class="pass-title">FOODIE PASS</div>
                     <div class="pass-bar"><div id="pass-fill"></div></div>
                 </div>
-                <div id="fooders-list" class="fooders-list">
-                    </div>
+                <div id="fooders-list" class="fooders-list"></div>
             </div>
 
             <div class="center-stage">
                 <div id="hero-display" class="floating-hero">🍔</div>
                 <h1 id="hero-name">SIR BURGER</h1>
-                <button class="btn-upgrade" onclick="upgradeHero()">VYLEPŠIT</button>
+                <button class="btn-upgrade" onclick="alert('Upgraded!')">UPGRADE</button>
             </div>
 
             <div class="right-side">
@@ -46,7 +43,7 @@
                     <div class="mode-tag">EVENT</div>
                     <div class="mode-name">POTLUCK PARTY</div>
                 </div>
-                <button class="btn-play" onclick="startGame()">HRAJ</button>
+                <button class="btn-play" onclick="startGame()">PLAY 3v3</button>
             </div>
         </div>
     </div>
@@ -80,13 +77,14 @@
 
     <div id="result-screen" class="modal-overlay hidden">
         <div class="result-box">
-            <h1 id="res-title">VÍTĚZSTVÍ</h1>
-            <div class="res-row">🏆 +<span id="res-trophies">0</span></div>
-            <div class="res-row">🪙 +<span id="res-coins">0</span></div>
-            <button class="btn-play" onclick="location.reload()">MENU</button>
+            <h1 id="res-title">MATCH OVER</h1>
+            <div class="res-row">🏆 <span id="res-trophies">0</span></div>
+            <div class="res-row">🪙 <span id="res-coins">0</span></div>
+            <button class="btn-play" onclick="location.reload()">CONTINUE</button>
         </div>
     </div>
 
     <script src="game.js"></script>
 </body>
 </html>
+
