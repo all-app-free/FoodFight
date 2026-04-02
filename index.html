@@ -7,34 +7,48 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="rotate-device">Prosím, otočte telefon na šířku 🔄</div>
+    <div id="rotate-device">🔄 Otoč telefon na šířku</div>
 
     <div id="menu-screen" class="screen">
-        <div class="title-area">
-            <h1>FOOD FIGHT</h1>
-            <p>KITCHEN CHAOS</p>
+        <div class="top-bar">
+            <div class="currency xp">⭐ <span id="player-xp">0</span></div>
+            <div class="currency coins">🪙 <span id="player-coins">500</span></div>
         </div>
-        <div class="character-preview">
-            <div id="hero-emoji">🍔</div>
-            <h2 id="hero-name">SIR BURGER</h2>
+
+        <div class="main-layout">
+            <div class="fooders-list" id="fooder-list">
+                </div>
+
+            <div class="hero-center">
+                <div id="hero-preview" class="floating">🍔</div>
+                <div class="hero-info">
+                    <h2 id="hero-name">SIR BURGER</h2>
+                    <p>Level: <span id="hero-lvl">1</span></p>
+                </div>
+                <button id="upgrade-btn" class="btn-upgrade">LEVELIT UP! (100 🪙)</button>
+            </div>
+
+            <div class="mode-selection">
+                <div class="mode-card active" data-mode="potluck">
+                    <span>🥊</span>
+                    <p>Potluck Party</p>
+                </div>
+                <div class="mode-card locked" data-mode="lava">
+                    <span>🔥</span>
+                    <p>Oil is Lava</p>
+                </div>
+                <button id="play-btn" class="btn-play">HRAJ</button>
+            </div>
         </div>
-        <button id="play-button" class="btn-main">HRAJ</button>
     </div>
 
     <canvas id="gameCanvas" class="hidden"></canvas>
-
-    <div id="ui-layer" class="hidden">
-        <div class="score-board">
-            <span id="score-blue">0</span> : <span id="score-red">0</span>
+    <div id="game-ui" class="hidden">
+        <div class="ingame-score">
+            <span class="t-blue" id="s-blue">0</span> : <span class="t-red" id="s-red">0</span>
         </div>
-        
-        <div id="joy-left-container" class="joystick-container">
-            <div class="joy-base"><div id="stick-left" class="stick"></div></div>
-        </div>
-
-        <div id="joy-right-container" class="joystick-container">
-            <div class="joy-base red-joy"><div id="stick-right" class="stick"></div></div>
-        </div>
+        <div id="joy-move-cont" class="joy-cont"><div class="joy-base"><div id="stick-move" class="stick"></div></div></div>
+        <div id="joy-shoot-cont" class="joy-cont"><div class="joy-base red-joy"><div id="stick-shoot" class="stick"></div></div></div>
     </div>
 
     <script src="game.js"></script>
