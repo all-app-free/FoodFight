@@ -1,85 +1,124 @@
-let state = JSON.parse(localStorage.getItem('FoodFight_Final_Save')) || {
-    coins: 200, trophies: 0, selected: 'burger', claimed: [],
-    fooders: {
-        burger: { emoji: '🍔', name: 'SIR BURGER', hp: 1000, level: 1, unlocked: true },
-        taco: { emoji: '🌮', name: 'SPICY TACO', hp: 800, level: 1, unlocked: false },
-        sushi: { emoji: '🍣', name: 'SUSHI ROLL', hp: 900, level: 1, unlocked: false }
+// --- GLOBAL LAUNCH DATA ---
+let state = JSON.parse(localStorage.getItem('FoodFight_Global')) || {
+    coins: 500,
+    trophies: 0,
+    selectedHero: 'burger',
+    unlockedHeroes: ['burger'],
+    claimedRewards: [],
+    heroStats: {
+        burger: { name: 'SIR BURGER', emoji: '🍔', lv: 1 },
+        taco: { name: 'SPICY TACO', emoji: '🌮', lv: 1 },
+        sushi: { name: 'SUSHI ROLL', emoji: '🍣', lv: 1 },
+        pizza: { name: 'PIZZA PETE', emoji: '🍕', lv: 1 }
     }
 };
 
-const PASS_DATA = Array.from({length: 30}, (_, i) => ({ id: `p${i}`, req: i * 20, val: (i+1)*50, type: i%5===0&&i!==0?'hero':'coins', target: 'taco'}));
-const ROAD_DATA = Array.from({length: 50}, (_, i) => ({ id: `r${i}`, req: i * 50, val: (i+1)*100, type: i===5?'hero':'coins', target: 'sushi'}));
+const PASS_DATA = [
+    { id: 'p1', req: 0, type: 'coins', val: 100 },
+    { id: 'p2', req: 50, type: 'hero', val: 'taco' },
+    { id: 'p3', req: 100, type: 'coins', val: 250 },
+    { id: 'p4', req: 200, type: 'hero', val: 'pizza' }
+];
 
-function updateUI() {
+const ROAD_DATA = [
+    { id: 'r1', req: 10, type: 'coins', val: 50 },
+    { id: 'r2', req: 100, type: 'hero', val: 'sushi' },
+    { id: 'r3', req: 500, type: 'coins', val: 1000 }
+];
+
+function save() {
+    localStorage.setItem('FoodFight_Global', JSON.stringify(state));
+    renderMenu();
+}
+
+// --- MENU LOGIC ---
+function renderMenu() {
     document.getElementById('p-trophies').innerText = state.trophies;
     document.getElementById('p-coins').innerText = state.coins;
     
-    const h = state.fooders[state.selected];
-    document.getElementById('hero-model').innerText = h.emoji;
-    document.getElementById('hero-name').innerText = h.name + " LV." + h.level;
-    document.getElementById('stat-hp').innerText = "❤️ " + h.hp;
+    const hero = state.heroStats[state.selectedHero];
+    document.getElementById('hero-model').innerText = hero.emoji;
+    document.getElementById('hero-name').innerText = hero.name;
+    document.getElementById('hero-lv').innerText = hero.lv;
+}
+
+// --- HEROES MODAL ---
+function openHeroes() {
+    const modal = document.getElementById('heroes-modal');
+    const grid = document.getElementById('heroes-grid');
+    modal.classList.remove('hidden');
     
-    const cost = h.level * 150;
-    document.getElementById('u-price').innerText = cost;
-    document.getElementById('btn-upgrade').style.opacity = state.coins >= cost ? "1" : "0.5";
-
-    document.getElementById('road-fill').style.width = Math.min(100, state.trophies/10) + "%";
-    document.getElementById('pass-fill').style.width = Math.min(100, state.trophies/5) + "%";
-
-    const tray = document.getElementById('hero-tray');
-    tray.innerHTML = Object.keys(state.fooders).filter(k => state.fooders[k].unlocked).map(k => `
-        <div class="reward-node ${state.selected === k ? 'unlocked' : ''}" style="width:60px; padding:10px; margin-bottom:10px; cursor:pointer" onclick="selectHero('${k}')">
-            ${state.fooders[k].emoji}
-        </div>
-    `).join('');
+    grid.innerHTML = Object.keys(state.heroStats).map(id => {
+        const h = state.heroStats[id];
+        const unlocked = state.unlockedHeroes.includes(id);
+        return `
+            <div class="reward-card ${state.selectedHero === id ? 'blue' : ''}" 
+                 style="opacity: ${unlocked ? 1 : 0.4}" 
+                 onclick="${unlocked ? `selectHero('${id}')` : ''}">
+                <div style="font-size: 3rem">${h.emoji}</div>
+                <div>${h.name}</div>
+                <div style="font-size: 0.7rem">${unlocked ? 'POWER ' + h.lv : 'LOCKED'}</div>
+            </div>
+        `;
+    }).join('');
 }
 
-function selectHero(id) { state.selected = id; save(); }
-function save() { localStorage.setItem('FoodFight_Final_Save', JSON.stringify(state)); updateUI(); }
-
-function upgradeHero() {
-    const h = state.fooders[state.selected];
-    const cost = h.level * 150;
-    if(state.coins >= cost) { state.coins -= cost; h.level++; h.hp += 200; save(); }
+function selectHero(id) {
+    state.selectedHero = id;
+    save();
+    closeModals();
 }
 
-function openPass() { document.getElementById('pass-modal').classList.remove('hidden'); renderTrack('pass-track', PASS_DATA, 'pass'); }
-function openRoad() { document.getElementById('road-modal').classList.remove('hidden'); renderTrack('road-track', ROAD_DATA, 'road'); }
-function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')); }
+// --- SMART TRACKS (Hides Completed) ---
+function openPass() { openTrack('FOODIE PASS', PASS_DATA); }
+function openRoad() { openTrack('TROPHY ROAD', ROAD_DATA); }
 
-function renderTrack(elId, data, type) {
-    const container = document.getElementById(elId);
-    container.innerHTML = data.map(item => {
-        const claimed = state.claimed.includes(item.id);
+function openTrack(title, data) {
+    const modal = document.getElementById('track-modal');
+    const list = document.getElementById('track-items');
+    document.getElementById('track-title').innerText = title;
+    modal.classList.remove('hidden');
+
+    // Filter out claimed rewards (Deletes them from the view)
+    const activeRewards = data.filter(item => !state.claimedRewards.includes(item.id));
+
+    list.innerHTML = activeRewards.map(item => {
         const locked = state.trophies < item.req;
         return `
-            <div class="reward-node ${locked?'':'unlocked'}">
-                <div style="font-size:0.7rem">${item.req} 🏆</div>
-                <div style="font-size:2rem; margin:10px 0">${item.type==='coins'?'🪙':'🎁'}</div>
-                <button class="upgrade-btn-premium" style="font-size:0.6rem; min-width:80px" onclick="claim('${item.id}','${type}')" ${locked||claimed?'disabled':''}>
-                    ${claimed?'OK':(locked?'LOCKED':'CLAIM')}
+            <div class="reward-card ${locked ? 'locked' : ''}">
+                <div style="font-size: 0.8rem">${item.req} 🏆</div>
+                <div style="font-size: 2.5rem">${item.type === 'coins' ? '🪙' : '🎁'}</div>
+                <button class="menu-btn orange" 
+                        style="width: 100px; height: 40px; font-size: 0.6rem"
+                        ${locked ? 'disabled' : ''} 
+                        onclick="claim('${item.id}', '${item.type}', '${item.val}', '${title}')">
+                    ${locked ? 'LOCKED' : 'CLAIM'}
                 </button>
             </div>
         `;
     }).join('');
 }
 
-function claim(id, type) {
-    const rewards = type === 'pass' ? PASS_DATA : ROAD_DATA;
-    const item = rewards.find(r => r.id === id);
-    if(item.type === 'coins') state.coins += item.val;
-    else state.fooders[item.target].unlocked = true;
-    state.claimed.push(id);
+function claim(id, type, val, trackName) {
+    if (type === 'coins') state.coins += parseInt(val);
+    if (type === 'hero') state.unlockedHeroes.push(val);
+    
+    state.claimedRewards.push(id);
     save();
-    type === 'pass' ? openPass() : openRoad();
+    
+    // Refresh the track immediately to "delete" the completed item
+    trackName === 'FOODIE PASS' ? openPass() : openRoad();
+}
+
+function closeModals() {
+    document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
 }
 
 function startGame() {
-    // Basic Transition to Game
-    document.getElementById('menu-screen').classList.add('hidden');
-    document.getElementById('gameCanvas').classList.remove('hidden');
-    document.getElementById('game-ui').classList.remove('hidden');
-    // Game logic would go here
+    alert("Match Found! Transitioning to Battle...");
+    // Future: Add Battle Logic here
 }
 
-updateUI();
+// Init
+renderMenu();
+    
