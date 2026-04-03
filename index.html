@@ -7,96 +7,71 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="rotate-overlay">
-        <div class="rotate-card">
-            <div class="phone-3d"><div class="phone-face"></div></div>
-            <p>PLEASE ROTATE YOUR DEVICE</p>
-        </div>
-    </div>
-
     <div id="menu-screen" class="screen">
-        <div class="header-ui">
-            <div class="stat-pill trophy" onclick="openRoad()">
-                <span class="icon">🏆</span>
-                <div class="pill-info">
+        <div class="top-bar">
+            <div class="stat-group left" onclick="openRoad()">
+                <div class="stat-box trophy">
+                    <span class="icon">🏆</span>
                     <span id="p-trophies">0</span>
-                    <div class="progress-bg"><div id="road-fill"></div></div>
                 </div>
             </div>
-            <div class="stat-pill coins">
-                <span class="icon">🪙</span>
-                <span id="p-coins">0</span>
-                <div class="add-btn">+</div>
+            <div class="stat-group right">
+                <div class="stat-box coins">
+                    <span class="icon">🪙</span>
+                    <span id="p-coins">0</span>
+                </div>
             </div>
         </div>
 
-        <div class="main-layout">
-            <div class="side-panel left">
-                <div class="pass-widget" onclick="openPass()">
-                    <div class="pass-title">FOODIE PASS</div>
-                    <div class="pass-bar-mini"><div id="pass-fill"></div></div>
-                </div>
-                <div id="hero-tray" class="hero-selection-grid"></div>
-            </div>
+        <div class="side-menu left">
+            <button class="menu-btn orange" onclick="openPass()">
+                <span class="btn-label">FOODIE PASS</span>
+            </button>
+            <button class="menu-btn blue" onclick="openHeroes()">
+                <span class="btn-label">FOODERS</span>
+            </button>
+        </div>
 
-            <div class="center-stage">
-                <div id="hero-model" class="hero-display-large">🍔</div>
-                <div class="hero-info-card">
-                    <h1 id="hero-name">SIR BURGER</h1>
-                    <div class="hero-tags">
-                        <span id="stat-hp" class="tag hp">❤️ 1000</span>
-                        <span id="stat-spd" class="tag spd">⚡ FAST</span>
-                    </div>
-                </div>
-                <button id="btn-upgrade" class="upgrade-btn-premium" onclick="upgradeHero()">
-                    <span class="up-label">UPGRADE</span>
-                    <span class="up-cost">🪙 <span id="u-price">100</span></span>
-                </button>
+        <div class="center-stage" onclick="openHeroes()">
+            <div id="hero-model" class="main-character-emoji">🍔</div>
+            <div class="character-info">
+                <h2 id="hero-name">SIR BURGER</h2>
+                <div class="power-level">POWER <span id="hero-lv">1</span></div>
             </div>
+        </div>
 
-            <div class="side-panel right">
-                <div class="game-mode-card">
-                    <div class="mode-badge">NEW</div>
-                    <div class="mode-text">3v3 BRAWL</div>
-                </div>
-                <button class="play-btn-massive" onclick="startGame()">PLAY</button>
+        <div class="play-section">
+            <div class="mode-select">
+                <span class="mode-title">3v3 BRAWL</span>
             </div>
+            <button class="play-btn" onclick="startGame()">PLAY</button>
         </div>
     </div>
 
-    <div id="pass-modal" class="modal hidden">
-        <div class="modal-window pass">
+    <div id="heroes-modal" class="modal hidden">
+        <div class="modal-full">
             <div class="modal-header">
-                <h2>FOODIE PASS</h2>
+                <h1>FOODERS</h1>
                 <button class="close-btn" onclick="closeModals()">✕</button>
             </div>
-            <div class="swipe-area">
-                <div id="pass-track" class="track"></div>
-            </div>
+            <div id="heroes-grid" class="heroes-grid"></div>
         </div>
     </div>
 
-    <div id="road-modal" class="modal hidden">
-        <div class="modal-window road">
+    <div id="track-modal" class="modal hidden">
+        <div class="modal-full">
             <div class="modal-header">
-                <h2>TROPHY ROAD</h2>
+                <h1 id="track-title">TRACK</h1>
                 <button class="close-btn" onclick="closeModals()">✕</button>
             </div>
-            <div class="swipe-area">
-                <div id="road-track" class="track"></div>
+            <p class="swipe-hint">Swipe to see rewards - Completed are removed!</p>
+            <div class="swipe-container">
+                <div id="track-items" class="track-list"></div>
             </div>
         </div>
-    </div>
-
-    <canvas id="gameCanvas" class="hidden"></canvas>
-    <div id="game-ui" class="hidden">
-        <div class="score-display">
-            <span id="s-blue" class="t-blue">0</span> : <span id="s-red" class="t-red">0</span>
-        </div>
-        <div id="joy-move" class="joystick-pad"><div class="handle"></div></div>
-        <div id="joy-shoot" class="joystick-pad shoot"><div class="handle"></div></div>
     </div>
 
     <script src="game.js"></script>
 </body>
-</html>
+    </html>
+    
